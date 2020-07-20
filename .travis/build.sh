@@ -15,8 +15,6 @@ export DOCKER_ORG=${DOCKER_ORG:-strimzici}
 export DOCKER_REGISTRY=${DOCKER_REGISTRY:-docker.io}
 export DOCKER_TAG=$COMMIT
 
-make spotbugs
-
 # Push to the real docker org
 if [ "$PULL_REQUEST" != "false" ] ; then
     echo "Building Pull Request - nothing to push"
