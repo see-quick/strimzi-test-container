@@ -1,13 +1,9 @@
 PROJECT_NAME=test-container
 
-docker_build: java_install
-docker_push:
-docker_tag:
-all: docker_build docker_push
-clean: java_clean
+spotbugs: systemtest_make
 
-include ../Makefile.maven
+systemtest_make:
+	$(MAKE) -C systemtest $(MAKECMDGOALS)
 
-.PHONY: build clean release
-
-# TODO: this one will not work...
+pushtonexus:
+    ./.travis/push-to-nexus.sh

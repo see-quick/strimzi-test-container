@@ -15,51 +15,14 @@ export DOCKER_ORG=${DOCKER_ORG:-strimzici}
 export DOCKER_REGISTRY=${DOCKER_REGISTRY:-docker.io}
 export DOCKER_TAG=$COMMIT
 
-make shellcheck
-make docu_check
 make spotbugs
-
-make crd_install
-make helm_install
-make docker_build
-
-if [ ! -e documentation/modules/appendix_crds.adoc ] ; then
-  echo "ERROR: documentation/modules/appendix_crds.adoc does not exist!"
-  exit 1
-fi
-
-CHANGED_DERIVED=$(git diff --name-status -- install/ helm-charts/ documentation/modules/appendix_crds.adoc cluster-operator/src/main/resources/cluster-roles)
-GENERATED_FILES=$(git ls-files --other --exclude-standard -- install/ helm-charts/ cluster-operator/src/main/resources/cluster-roles)
-if [ -n "$CHANGED_DERIVED" ] || [ -n "$GENERATED_FILES" ] ; then
-  if [ -n "$CHANGED_DERIVED" ] ; then
-    echo "ERROR: Uncommitted changes in derived resources:"
-    echo "$CHANGED_DERIVED"
-  fi
-  if [ -n "$GENERATED_FILES" ] ; then
-    echo "ERROR: Uncommitted changes in generated resources:"
-    echo "$GENERATED_FILES"
-  fi
-  echo "Run the following to add up-to-date resources:"
-  echo "  mvn clean verify -DskipTests -DskipITs \\"
-  echo "    && make crd_install \\"
-  echo "    && make helm_install \\"
-  echo "    && git add install/ helm-charts/ documentation/modules/appendix_crds.adoc cluster-operator/src/main/resources/cluster-roles \\"
-  echo "    && git commit -s -m 'Update derived resources'"
-  exit 1
-fi
 
 # Push to the real docker org
 if [ "$PULL_REQUEST" != "false" ] ; then
-    make docu_html
-    make docu_htmlnoheader
     echo "Building Pull Request - nothing to push"
 elif [ "${TRAVIS_REPO_SLUG}" != "strimzi/strimzi-kafka-operator" ]; then
-    make docu_html
-    make docu_htmlnoheader
     echo "Building in a fork and not in a Strimzi repository. Will not attempt to push anything."
 elif [ "$TAG" = "latest" ] && [ "$BRANCH" != "master" ]; then
-    make docu_html
-    make docu_htmlnoheader
     echo "Not in master branch and not in release tag - nothing to push"
 else
     if [ "${MAIN_BUILD}" = "TRUE" ] ; then
@@ -70,9 +33,6 @@ else
         export DOCKER_TAG=$TAG
         echo "Pushing to docker org $DOCKER_ORG"
         make docker_push
-        if [ "$BRANCH" = "master" ]; then
-            make docu_pushtowebsite
-        fi
         make pushtonexus
     fi
 fi
